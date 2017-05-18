@@ -13,16 +13,19 @@ namespace TalkToMe
         {
             using (var recognitionEngine = new SpeechRecognitionEngine(new CultureInfo("en-US")))
             {
+                var spe = new SpeechEvents();
                 recognitionEngine.LoadGrammar(new DictationGrammar());
                 recognitionEngine.SpeechRecognized += SpeechEvents.recognizer_IfRecognizedCorrectWords;
-                recognitionEngine.SpeechRecognized += SpeechEvents.recognizer_recognitionDebug;
+                recognitionEngine.SpeechRecognized += spe.recognizer_recognitionDebug;
+
 
                 recognitionEngine.SetInputToDefaultAudioDevice();
 
                 recognitionEngine.RecognizeAsync(RecognizeMode.Multiple);
 
-                while (true)
+                while (spe.EvaluateClosed())
                 {
+                    spe.EvaluateClosed();
                     WriteLine("Talk to me.");
                     ReadLine();
                 }
