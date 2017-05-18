@@ -10,8 +10,9 @@ namespace TalkToMe.Events
     public class SpeechEvents : EventArgs
     {
 
-        public bool Continue { get; set; } = true;
+        public static bool Continue { get; set; } = true;
         public bool Recording { get; set; }
+        private bool Debugging { get; set; }
         private readonly SpeechEvents _speechEvents;
 
         public SpeechEvents(SpeechEvents speechEvents)
@@ -29,36 +30,61 @@ namespace TalkToMe.Events
             const string logPath = @"C:\SpeechRecognition\AudioSamples\Logs\log.txt";
             const string path = @"C:\SpeechRecognition\AudioSamples\dbugaudio.wav";
 
+            while (Debugging)
+            {
+                Console.WriteLine("Begin debug...");
+                var highestConfidenceResult = (spe.Result.Alternates.FirstOrDefault(a => a.Confidence > 0.8) == null) ? "No alternatives > 80%" : spe.Result.Alternates.Where(a => a.Confidence > 0.80).Select(a => a.Text).FirstOrDefault()  ;
 
-            var highestConfidenceResult = spe.Result.Alternates.Where(a => a.Confidence > 0.90).Select(a => a.Text).FirstOrDefault();
 
-                WriteLine(DateTime.Now.ToLongDateString());
-                WriteLine("**** DEBUG ****");
                 WriteLine("Confidence level: " + spe.Result.Confidence);
 
                 WriteLine("Highest confidence: " + highestConfidenceResult);
-                WriteLine("Actual: " + spe.Result.Text);
+                if (spe.Result.Confidence > 0.8)
+                {
+                    WriteLine("Best guess: " + spe.Result.Text);
+                }
 
-            if (spe.Result.Text == "record")
-            {
-                
-                Recording = true;
+
+                if (spe.Result.Text == "record")
+                {
+
+                    Recording = true;
+                }
+
+                if (spe.Result.Text == "Stop" || spe.Result.Text == "stop")
+                {
+                    Console.WriteLine("Ending debug...");
+                    Debugging = false;
+                }
+
+                if (!Recording) return;
+                WriteLine("Dumping audio...");
+                var nameAudio = spe.Result.Audio;
+
+                using (Stream outputStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    nameAudio?.WriteToWaveStream(outputStream);
+                    outputStream.Close();
+                }
             }
+        }
 
+        public  void recognizer_ExitListener(object sender, SpeechRecognizedEventArgs spe)
+        {
             if (spe.Result.Text == "exit" || spe.Result.Text == "Exit")
             {
                 Continue = false;
             }
+        }
 
-            if (!Recording) return;
-            WriteLine("Dumping audio...");
-            var nameAudio = spe.Result.Audio;
+        public  void recognizer_DebugListener(object sender, SpeechRecognizedEventArgs spe)
+        {
 
-            using (Stream outputStream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite))
+            if (spe.Result.Text == "Debug" || spe.Result.Text == "debug")
             {
-                nameAudio?.WriteToWaveStream(outputStream);
-                outputStream.Close();
+                Debugging = true;
             }
+            
         }
 
         public static void recognizer_IfRecognizedCorrectWords(object sender, SpeechRecognizedEventArgs spe)

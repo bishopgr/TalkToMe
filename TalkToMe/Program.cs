@@ -11,26 +11,37 @@ namespace TalkToMe
     {
         static void Main(string[] args)
         {
-            using (var recognitionEngine = new SpeechRecognitionEngine(new CultureInfo("en-US")))
+            using (var recognitionEngine = new SpeechRecognitionEngine())
             {
                 var spe = new SpeechEvents();
+
                 recognitionEngine.LoadGrammar(new DictationGrammar());
+                var rr = recognitionEngine.EmulateRecognize("exit");
                 recognitionEngine.SpeechRecognized += SpeechEvents.recognizer_IfRecognizedCorrectWords;
                 recognitionEngine.SpeechRecognized += spe.recognizer_recognitionDebug;
+                recognitionEngine.SpeechRecognized += spe.recognizer_ExitListener;
+                recognitionEngine.SpeechRecognized += spe.recognizer_DebugListener;
+
+                //var gb = new GrammarBuilder();
+                //gb.Append("My name is Glenn");
+                //gb.Append("exit");
+                //var g = new Grammar(gb);
+
 
 
                 recognitionEngine.SetInputToDefaultAudioDevice();
 
                 recognitionEngine.RecognizeAsync(RecognizeMode.Multiple);
 
-                while (spe.EvaluateClosed())
+
+                while (SpeechEvents.Continue)
                 {
-                    spe.EvaluateClosed();
-                    WriteLine("Talk to me.");
-                    ReadLine();
+
                 }
             }
 
         }
+
+     
     }
 }
