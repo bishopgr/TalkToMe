@@ -13,17 +13,6 @@ namespace TalkToMe.Events
         public static bool Continue { get; set; } = true;
         public bool Recording { get; set; }
         private bool Debugging { get; set; }
-        private readonly SpeechEvents _speechEvents;
-
-        public SpeechEvents(SpeechEvents speechEvents)
-        {
-            _speechEvents = speechEvents;
-        }
-
-        public SpeechEvents()
-        {
-            
-        }
 
         public void recognizer_recognitionDebug(object sender, SpeechRecognizedEventArgs spe)
         {
@@ -103,11 +92,6 @@ namespace TalkToMe.Events
                 default:
                     break;
             }
-        }
-
-        public bool EvaluateClosed()
-        {
-            return Continue;
         }
         
     }
